@@ -69,6 +69,12 @@ impl<T: ?Sized> Shared<T> {
     pub fn lock(this: &mut Self) -> SharedWriteGuard<T> {
         SharedWriteGuard(this.0.write().unwrap())
     }
+
+    /// Get a [`SharedReadLock`] for accessing the same resource read-only from
+    /// elsewhere.
+    pub fn get_read_lock(this: &Self) -> SharedReadLock<T> {
+        SharedReadLock(this.0.clone())
+    }
 }
 
 /// SAFETY: Only allowed for a read guard obtained from the inner value of a
