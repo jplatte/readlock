@@ -1,17 +1,17 @@
-#![doc = include_str!("../README.md")]
-#![warn(missing_debug_implementations, missing_docs)]
+//! Versions of `Shared` and `SharedReadLock` that are implemented in terms of
+//! the [rclite] crate. Because [`rclite::Arc`] doesn't have weak references,
+//! there is no `WeakReadLock` here.
 
 use std::{
     fmt, ops,
-    sync::{Arc, LockResult, PoisonError, RwLock, RwLockReadGuard, RwLockWriteGuard, Weak},
+    sync::{LockResult, PoisonError, RwLock, RwLockReadGuard, RwLockWriteGuard},
 };
 
-#[cfg(feature = "lite")]
-pub mod lite;
+use rclite::Arc;
 
-/// A wrapper around a resource possibly shared with [`SharedReadLock`]s and
-/// [`WeakReadLock`]s, but no other `Shared`s.
-pub struct Shared<T: ?Sized>(Arc<RwLock<T>>);
+/// A wrapper around a resource possibly shared with [`SharedReadLock`]s, but no
+/// other `Shared`s.
+pub struct Shared<T>(Arc<RwLock<T>>);
 
 impl<T> Shared<T> {
     /// Create a new `Shared`.
@@ -36,9 +36,7 @@ impl<T> Shared<T> {
             Err(arc) => Err(Self(arc)),
         }
     }
-}
 
-impl<T: ?Sized> Shared<T> {
     /// Get a reference to the inner value.
     ///
     /// Usually, you don't need to call this function since `Shared<T>`
@@ -86,12 +84,12 @@ impl<T: ?Sized> Shared<T> {
 /// mutate the inner value (you can not have two `Shared`s that reference the
 /// same inner value) and the other references that can exist to the inner value
 /// are only allowed to read as well.
-unsafe fn readguard_into_ref<'a, T: ?Sized + 'a>(guard: RwLockReadGuard<'a, T>) -> &'a T {
+unsafe fn readguard_into_ref<'a, T: 'a>(guard: RwLockReadGuard<'a, T>) -> &'a T {
     let reference: &T = &guard;
     &*(reference as *const T)
 }
 
-impl<T: ?Sized> ops::Deref for Shared<T> {
+impl<T> ops::Deref for Shared<T> {
     type Target = T;
 
     fn deref(&self) -> &Self::Target {
@@ -99,7 +97,7 @@ impl<T: ?Sized> ops::Deref for Shared<T> {
     }
 }
 
-impl<T: fmt::Debug + ?Sized> fmt::Debug for Shared<T> {
+impl<T: fmt::Debug> fmt::Debug for Shared<T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         self.0.fmt(f)
     }
@@ -108,43 +106,17 @@ impl<T: fmt::Debug + ?Sized> fmt::Debug for Shared<T> {
 /// A read-only reference to a resource possibly shared with up to one
 /// [`Shared`] and many [`WeakReadLock`]s.
 #[derive(Clone)]
-pub struct SharedReadLock<T: ?Sized>(Arc<RwLock<T>>);
+pub struct SharedReadLock<T>(Arc<RwLock<T>>);
 
-impl<T: ?Sized> SharedReadLock<T> {
+impl<T> SharedReadLock<T> {
     /// Lock this `SharedReadLock`, blocking the current thread until the
     /// operation succeeds.
     pub fn lock(&self) -> SharedReadGuard<'_, T> {
         SharedReadGuard(self.0.read().unwrap())
     }
-
-    /// Create a new [`WeakReadLock`] pointer to this allocation.
-    pub fn downgrade(&self) -> WeakReadLock<T> {
-        WeakReadLock(Arc::downgrade(&self.0))
-    }
 }
 
-impl<T: fmt::Debug + ?Sized> fmt::Debug for SharedReadLock<T> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        self.0.fmt(f)
-    }
-}
-
-/// A weak read-only reference to a resource possibly shared with up to one
-/// [`Shared`] and many [`SharedReadLock`]s.
-#[derive(Clone)]
-pub struct WeakReadLock<T: ?Sized>(Weak<RwLock<T>>);
-
-impl<T: ?Sized> WeakReadLock<T> {
-    /// Attempt to upgrade the `WeakReadLock` into a `SharedReadLock`, delaing
-    /// dropping of the inner value if successful.
-    ///
-    /// Returns `None` if the inner value has already been dropped.
-    pub fn upgrade(&self) -> Option<SharedReadLock<T>> {
-        Weak::upgrade(&self.0).map(SharedReadLock)
-    }
-}
-
-impl<T: fmt::Debug + ?Sized> fmt::Debug for WeakReadLock<T> {
+impl<T: fmt::Debug> fmt::Debug for SharedReadLock<T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         self.0.fmt(f)
     }
@@ -152,9 +124,9 @@ impl<T: fmt::Debug + ?Sized> fmt::Debug for WeakReadLock<T> {
 
 /// RAII structure used to release the shared read access of a lock when
 /// dropped.
-pub struct SharedReadGuard<'a, T: ?Sized + 'a>(RwLockReadGuard<'a, T>);
+pub struct SharedReadGuard<'a, T: 'a>(RwLockReadGuard<'a, T>);
 
-impl<'a, T: ?Sized + 'a> ops::Deref for SharedReadGuard<'a, T> {
+impl<'a, T: 'a> ops::Deref for SharedReadGuard<'a, T> {
     type Target = T;
 
     fn deref(&self) -> &Self::Target {
@@ -162,7 +134,7 @@ impl<'a, T: ?Sized + 'a> ops::Deref for SharedReadGuard<'a, T> {
     }
 }
 
-impl<'a, T: fmt::Debug + ?Sized + 'a> fmt::Debug for SharedReadGuard<'a, T> {
+impl<'a, T: fmt::Debug + 'a> fmt::Debug for SharedReadGuard<'a, T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         self.0.fmt(f)
     }
@@ -170,9 +142,9 @@ impl<'a, T: fmt::Debug + ?Sized + 'a> fmt::Debug for SharedReadGuard<'a, T> {
 
 /// RAII structure used to release the exclusive write access of a lock when
 /// dropped.
-pub struct SharedWriteGuard<'a, T: ?Sized + 'a>(RwLockWriteGuard<'a, T>);
+pub struct SharedWriteGuard<'a, T: 'a>(RwLockWriteGuard<'a, T>);
 
-impl<'a, T: ?Sized + 'a> ops::Deref for SharedWriteGuard<'a, T> {
+impl<'a, T: 'a> ops::Deref for SharedWriteGuard<'a, T> {
     type Target = T;
 
     fn deref(&self) -> &Self::Target {
@@ -180,13 +152,13 @@ impl<'a, T: ?Sized + 'a> ops::Deref for SharedWriteGuard<'a, T> {
     }
 }
 
-impl<'a, T: ?Sized + 'a> ops::DerefMut for SharedWriteGuard<'a, T> {
+impl<'a, T: 'a> ops::DerefMut for SharedWriteGuard<'a, T> {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.0
     }
 }
 
-impl<'a, T: fmt::Debug + ?Sized + 'a> fmt::Debug for SharedWriteGuard<'a, T> {
+impl<'a, T: fmt::Debug + 'a> fmt::Debug for SharedWriteGuard<'a, T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         self.0.fmt(f)
     }
