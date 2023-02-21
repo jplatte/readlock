@@ -2,6 +2,8 @@ use std::{self, thread, time::Duration};
 
 use readlock::Shared;
 
+mod lite;
+
 #[test]
 fn parallel_read_write() {
     let mut shared = Shared::new(1);

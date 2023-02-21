@@ -6,6 +6,9 @@ use std::{
     sync::{Arc, LockResult, PoisonError, RwLock, RwLockReadGuard, RwLockWriteGuard, Weak},
 };
 
+#[cfg(feature = "lite")]
+pub mod lite;
+
 /// A wrapper around a resource possibly shared with [`SharedReadLock`]s and
 /// [`WeakReadLock`]s, but no other `Shared`s.
 pub struct Shared<T: ?Sized>(Arc<RwLock<T>>);

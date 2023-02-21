@@ -5,3 +5,9 @@ edition = "2021"
 license = "MPL-2.0"
 description = "A weird alternative to Arc<RwLock<T>>"
 repository = "https://github.com/jplatte/readlock"
+
+[features]
+lite = ["dep:rclite"]
+
+[dependencies]
+rclite = { version = "0.1.5", optional = true }

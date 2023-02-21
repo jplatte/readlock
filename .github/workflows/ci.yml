@@ -18,7 +18,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@stable
-      - run: cargo test
+      - run: cargo test --all-features
 
   #test-miri:
   #  name: Run tests with miri (Rust nightly)
@@ -29,7 +29,7 @@ jobs:
   #    - uses: dtolnay/rust-toolchain@nightly
   #      with:
   #        components: miri
-  #    - run: cargo miri test
+  #    - run: cargo miri test --all-features
 
   clippy:
     name: Run clippy (Rust nightly)
@@ -40,4 +40,4 @@ jobs:
       - uses: dtolnay/rust-toolchain@nightly
         with:
           components: clippy
-      - run: cargo clippy
+      - run: cargo clippy --all-features
