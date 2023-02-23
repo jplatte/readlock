@@ -102,6 +102,12 @@ impl<T: fmt::Debug + ?Sized> fmt::Debug for Shared<T> {
     }
 }
 
+impl<T: Default> Default for Shared<T> {
+    fn default() -> Self {
+        Self::new(T::default())
+    }
+}
+
 /// A read-only reference to a resource possibly shared with up to one
 /// [`Shared`] and many [`WeakReadLock`]s.
 #[derive(Clone)]
