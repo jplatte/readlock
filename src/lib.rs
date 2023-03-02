@@ -155,6 +155,7 @@ impl<T: fmt::Debug + ?Sized> fmt::Debug for WeakReadLock<T> {
 
 /// RAII structure used to release the shared read access of a lock when
 /// dropped.
+#[clippy::has_significant_drop]
 pub struct SharedReadGuard<'a, T: ?Sized + 'a>(RwLockReadGuard<'a, T>);
 
 impl<'a, T: ?Sized + 'a> ops::Deref for SharedReadGuard<'a, T> {
@@ -173,6 +174,7 @@ impl<'a, T: fmt::Debug + ?Sized + 'a> fmt::Debug for SharedReadGuard<'a, T> {
 
 /// RAII structure used to release the exclusive write access of a lock when
 /// dropped.
+#[clippy::has_significant_drop]
 pub struct SharedWriteGuard<'a, T: ?Sized + 'a>(RwLockWriteGuard<'a, T>);
 
 impl<'a, T: ?Sized + 'a> ops::Deref for SharedWriteGuard<'a, T> {
