@@ -1,5 +1,5 @@
 #![doc = include_str!("../README.md")]
-#![warn(missing_debug_implementations, missing_docs)]
+#![warn(missing_debug_implementations, missing_docs, rust_2018_idioms)]
 
 use std::{
     fmt, ops,
@@ -66,7 +66,7 @@ impl<T: ?Sized> Shared<T> {
 
     /// Lock this `Shared` to be able to mutate it, blocking the current thread
     /// until the operation succeeds.
-    pub fn lock(this: &mut Self) -> SharedWriteGuard<T> {
+    pub fn lock(this: &mut Self) -> SharedWriteGuard<'_, T> {
         SharedWriteGuard(this.0.write().unwrap())
     }
 
@@ -220,7 +220,7 @@ impl<T: fmt::Debug + ?Sized> fmt::Debug for WeakReadLock<T> {
 /// RAII structure used to release the shared read access of a lock when
 /// dropped.
 #[clippy::has_significant_drop]
-pub struct SharedReadGuard<'a, T: ?Sized + 'a>(RwLockReadGuard<'a, T>);
+pub struct SharedReadGuard<'a, T: ?Sized>(RwLockReadGuard<'a, T>);
 
 impl<'a, T: ?Sized + 'a> SharedReadGuard<'a, T> {
     /// Create a `SharedReadGuard` from its internal representation,
@@ -247,7 +247,7 @@ impl<'a, T: fmt::Debug + ?Sized + 'a> fmt::Debug for SharedReadGuard<'a, T> {
 /// RAII structure used to release the exclusive write access of a lock when
 /// dropped.
 #[clippy::has_significant_drop]
-pub struct SharedWriteGuard<'a, T: ?Sized + 'a>(RwLockWriteGuard<'a, T>);
+pub struct SharedWriteGuard<'a, T: ?Sized>(RwLockWriteGuard<'a, T>);
 
 impl<'a, T: ?Sized + 'a> ops::Deref for SharedWriteGuard<'a, T> {
     type Target = T;
