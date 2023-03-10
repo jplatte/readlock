@@ -1,3 +1,9 @@
+# 0.1.3
+
+- Add conversion functions between `Shared<T>`, `SharedReadLock<T>` and
+  `Arc<RwLock<T>>` (the inner representation of both)
+- Add `SharedReadGuard::from_inner`
+
 # 0.1.2
 
 - Add `#[clippy::has_significant_drop]` attribute to guard types so the

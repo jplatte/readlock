@@ -75,6 +75,26 @@ impl<T: ?Sized> Shared<T> {
     pub fn get_read_lock(this: &Self) -> SharedReadLock<T> {
         SharedReadLock(this.0.clone())
     }
+
+    /// Attempt to create a `Shared` from its internal representation,
+    /// `Arc<RwLock<T>>`.
+    ///
+    /// This returns `Ok(_)` only if there are no further references (including
+    /// weak references) to the inner `RwLock` since otherwise, `Shared`s
+    /// invariant of being the only instance that can mutate the inner value
+    /// would be broken.
+    pub fn try_from_inner(rwlock: Arc<RwLock<T>>) -> Result<Self, Arc<RwLock<T>>> {
+        if Arc::strong_count(&rwlock) == 1 && Arc::weak_count(&rwlock) == 0 {
+            Ok(Self(rwlock))
+        } else {
+            Err(rwlock)
+        }
+    }
+
+    /// Turns this `Shared` into its internal representation, `Arc<RwLock<T>>`.
+    pub fn into_inner(this: Self) -> Arc<RwLock<T>> {
+        this.0
+    }
 }
 
 /// SAFETY: Only allowed for a read guard obtained from the inner value of a
@@ -124,6 +144,50 @@ impl<T: ?Sized> SharedReadLock<T> {
     pub fn downgrade(&self) -> WeakReadLock<T> {
         WeakReadLock(Arc::downgrade(&self.0))
     }
+
+    /// Upgrade a `SharedReadLock` to `Shared`.
+    ///
+    /// This only return `Ok(_)` if there are no other references (including a
+    /// `Shared`, or weak references) to the inner value, since otherwise it
+    /// would be possible to have multiple `Shared`s for the same inner value
+    /// alive at the same time, which would violate `Shared`s invariant of
+    /// being the only reference that is able to mutate the inner value.
+    pub fn try_upgrade(self) -> Result<Shared<T>, Self> {
+        if Arc::strong_count(&self.0) == 1 && Arc::weak_count(&self.0) == 0 {
+            Ok(Shared(self.0))
+        } else {
+            Err(self)
+        }
+    }
+
+    /// Create a `SharedReadLock` from its internal representation,
+    /// `Arc<RwLock<T>>`.
+    ///
+    /// You can use this to create a `SharedReadLock` from a shared `RwLock`
+    /// without ever using `Shared`, if you want to expose an API where there is
+    /// a value that can be written only from inside one module or crate, but
+    /// outside users should be allowed to obtain a reusable lock for reading
+    /// the inner value.
+    pub fn from_inner(rwlock: Arc<RwLock<T>>) -> Self {
+        Self(rwlock)
+    }
+
+    /// Attempt to turn this `SharedReadLock` into its internal representation,
+    /// `Arc<RwLock<T>>`.
+    ///
+    /// This returns `Ok(_)` only if there are no further references (including
+    /// a `Shared`, or weak references) to the inner value, since otherwise
+    /// it would be possible to have a `Shared` and an `Arc<RwLock<T>>` for
+    /// the same inner value alive at the same time, which would violate
+    /// `Shared`s invariant of being the only reference that is able to
+    /// mutate the inner value.
+    pub fn try_into_inner(self) -> Result<Arc<RwLock<T>>, Self> {
+        if Arc::strong_count(&self.0) == 1 && Arc::weak_count(&self.0) == 0 {
+            Ok(self.0)
+        } else {
+            Err(self)
+        }
+    }
 }
 
 impl<T: fmt::Debug + ?Sized> fmt::Debug for SharedReadLock<T> {
@@ -157,6 +221,14 @@ impl<T: fmt::Debug + ?Sized> fmt::Debug for WeakReadLock<T> {
 /// dropped.
 #[clippy::has_significant_drop]
 pub struct SharedReadGuard<'a, T: ?Sized + 'a>(RwLockReadGuard<'a, T>);
+
+impl<'a, T: ?Sized + 'a> SharedReadGuard<'a, T> {
+    /// Create a `SharedReadGuard` from its internal representation,
+    /// `RwLockReadGuard<'a, T>`.
+    pub fn from_inner(guard: RwLockReadGuard<'a, T>) -> Self {
+        Self(guard)
+    }
+}
 
 impl<'a, T: ?Sized + 'a> ops::Deref for SharedReadGuard<'a, T> {
     type Target = T;
