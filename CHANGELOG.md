@@ -1,4 +1,4 @@
-# unreleased
+# 0.1.4
 
 - Relax bounds for `Clone` implementations of `SharedReadLock` and `WeakReadLock`
 
