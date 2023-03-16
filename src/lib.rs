@@ -130,7 +130,6 @@ impl<T: Default> Default for Shared<T> {
 
 /// A read-only reference to a resource possibly shared with up to one
 /// [`Shared`] and many [`WeakReadLock`]s.
-#[derive(Clone)]
 pub struct SharedReadLock<T: ?Sized>(Arc<RwLock<T>>);
 
 impl<T: ?Sized> SharedReadLock<T> {
@@ -190,6 +189,12 @@ impl<T: ?Sized> SharedReadLock<T> {
     }
 }
 
+impl<T: ?Sized> Clone for SharedReadLock<T> {
+    fn clone(&self) -> Self {
+        Self(Arc::clone(&self.0))
+    }
+}
+
 impl<T: fmt::Debug + ?Sized> fmt::Debug for SharedReadLock<T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         self.0.fmt(f)
@@ -198,7 +203,6 @@ impl<T: fmt::Debug + ?Sized> fmt::Debug for SharedReadLock<T> {
 
 /// A weak read-only reference to a resource possibly shared with up to one
 /// [`Shared`] and many [`SharedReadLock`]s.
-#[derive(Clone)]
 pub struct WeakReadLock<T: ?Sized>(Weak<RwLock<T>>);
 
 impl<T: ?Sized> WeakReadLock<T> {
@@ -208,6 +212,12 @@ impl<T: ?Sized> WeakReadLock<T> {
     /// Returns `None` if the inner value has already been dropped.
     pub fn upgrade(&self) -> Option<SharedReadLock<T>> {
         Weak::upgrade(&self.0).map(SharedReadLock)
+    }
+}
+
+impl<T: ?Sized> Clone for WeakReadLock<T> {
+    fn clone(&self) -> Self {
+        Self(Weak::clone(&self.0))
     }
 }
 

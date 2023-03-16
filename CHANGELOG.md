@@ -1,3 +1,7 @@
+# unreleased
+
+- Relax bounds for `Clone` implementations of `SharedReadLock` and `WeakReadLock`
+
 # 0.1.3
 
 - Add conversion functions between `Shared<T>`, `SharedReadLock<T>` and
