@@ -1,3 +1,7 @@
+# unreleased
+
+- Add `Shared::{read_count, weak_count}`
+
 # 0.1.4
 
 - Relax bounds for `Clone` implementations of `SharedReadLock` and `WeakReadLock`

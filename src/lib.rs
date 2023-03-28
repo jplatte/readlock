@@ -95,6 +95,16 @@ impl<T: ?Sized> Shared<T> {
     pub fn into_inner(this: Self) -> Arc<RwLock<T>> {
         this.0
     }
+
+    /// Gets the number of associated [`SharedReadLock`]s.
+    pub fn read_count(this: &Self) -> usize {
+        Arc::strong_count(&this.0) - 1
+    }
+
+    /// Gets the number of associated [`WeakReadLock`]s.
+    pub fn weak_count(this: &Self) -> usize {
+        Arc::weak_count(&this.0)
+    }
 }
 
 /// SAFETY: Only allowed for a read guard obtained from the inner value of a
