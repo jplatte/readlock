@@ -1,4 +1,4 @@
-# unreleased
+# 0.1.5
 
 - Add `Shared::{read_count, weak_count}`
 
