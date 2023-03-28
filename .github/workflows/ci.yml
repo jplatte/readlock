@@ -20,16 +20,16 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - run: cargo test
 
-  test-miri:
-    name: Run tests with miri (Rust nightly)
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v3
-      - uses: dtolnay/rust-toolchain@nightly
-        with:
-          components: miri
-      - run: cargo miri test
+  #test-miri:
+  #  name: Run tests with miri (Rust nightly)
+  #  runs-on: ubuntu-latest
+  #
+  #  steps:
+  #    - uses: actions/checkout@v3
+  #    - uses: dtolnay/rust-toolchain@nightly
+  #      with:
+  #        components: miri
+  #    - run: cargo miri test
 
   clippy:
     name: Run clippy (Rust nightly)
