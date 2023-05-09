@@ -216,7 +216,7 @@ impl<T: fmt::Debug + ?Sized> fmt::Debug for SharedReadLock<T> {
 pub struct WeakReadLock<T: ?Sized>(Weak<RwLock<T>>);
 
 impl<T: ?Sized> WeakReadLock<T> {
-    /// Attempt to upgrade the `WeakReadLock` into a `SharedReadLock`, delaing
+    /// Attempt to upgrade the `WeakReadLock` into a `SharedReadLock`, delaying
     /// dropping of the inner value if successful.
     ///
     /// Returns `None` if the inner value has already been dropped.
