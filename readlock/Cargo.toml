@@ -11,3 +11,6 @@ lite = ["dep:rclite"]
 
 [dependencies]
 rclite = { version = "0.2.4", optional = true }
+
+[lints]
+workspace = true
