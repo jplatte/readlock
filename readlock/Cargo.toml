@@ -10,4 +10,4 @@ repository = "https://github.com/jplatte/readlock"
 lite = ["dep:rclite"]
 
 [dependencies]
-rclite = { version = "0.1.5", optional = true }
+rclite = { version = "0.2.4", optional = true }
