@@ -95,7 +95,7 @@ impl<T: fmt::Debug> fmt::Debug for Shared<T> {
 }
 
 /// A read-only reference to a resource possibly shared with up to one
-/// [`Shared`] and many [`WeakReadLock`]s.
+/// [`Shared`] and many other [`SharedReadLock`]s.
 #[derive(Clone)]
 pub struct SharedReadLock<T>(Arc<RwLock<T>>);
 
