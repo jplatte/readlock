@@ -4,10 +4,12 @@
 
 use std::{
     fmt, ops,
-    sync::{LockResult, PoisonError, RwLock, RwLockReadGuard, RwLockWriteGuard},
+    sync::{LockResult, PoisonError, RwLock},
 };
 
 use rclite::Arc;
+
+use crate::{readguard_into_ref, SharedReadGuard, SharedWriteGuard};
 
 /// A wrapper around a resource possibly shared with [`SharedReadLock`]s, but no
 /// other `Shared`s.
@@ -67,7 +69,7 @@ impl<T> Shared<T> {
 
     /// Lock this `Shared` to be able to mutate it, blocking the current thread
     /// until the operation succeeds.
-    pub fn lock(this: &mut Self) -> SharedWriteGuard<T> {
+    pub fn lock(this: &mut Self) -> SharedWriteGuard<'_, T> {
         SharedWriteGuard(this.0.write().unwrap())
     }
 
@@ -76,17 +78,6 @@ impl<T> Shared<T> {
     pub fn get_read_lock(this: &Self) -> SharedReadLock<T> {
         SharedReadLock(this.0.clone())
     }
-}
-
-/// SAFETY: Only allowed for a read guard obtained from the inner value of a
-/// `Shared`. Transmuting lifetime here, this is okay because the resulting
-/// reference's borrows this, which is the only `Shared` instance that could
-/// mutate the inner value (you can not have two `Shared`s that reference the
-/// same inner value) and the other references that can exist to the inner value
-/// are only allowed to read as well.
-unsafe fn readguard_into_ref<'a, T: 'a>(guard: RwLockReadGuard<'a, T>) -> &'a T {
-    let reference: &T = &guard;
-    &*(reference as *const T)
 }
 
 impl<T> ops::Deref for Shared<T> {
@@ -117,48 +108,6 @@ impl<T> SharedReadLock<T> {
 }
 
 impl<T: fmt::Debug> fmt::Debug for SharedReadLock<T> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        self.0.fmt(f)
-    }
-}
-
-/// RAII structure used to release the shared read access of a lock when
-/// dropped.
-pub struct SharedReadGuard<'a, T: 'a>(RwLockReadGuard<'a, T>);
-
-impl<'a, T: 'a> ops::Deref for SharedReadGuard<'a, T> {
-    type Target = T;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
-
-impl<'a, T: fmt::Debug + 'a> fmt::Debug for SharedReadGuard<'a, T> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        self.0.fmt(f)
-    }
-}
-
-/// RAII structure used to release the exclusive write access of a lock when
-/// dropped.
-pub struct SharedWriteGuard<'a, T: 'a>(RwLockWriteGuard<'a, T>);
-
-impl<'a, T: 'a> ops::Deref for SharedWriteGuard<'a, T> {
-    type Target = T;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
-
-impl<'a, T: 'a> ops::DerefMut for SharedWriteGuard<'a, T> {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.0
-    }
-}
-
-impl<'a, T: fmt::Debug + 'a> fmt::Debug for SharedWriteGuard<'a, T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         self.0.fmt(f)
     }
