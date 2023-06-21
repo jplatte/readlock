@@ -1,6 +1,6 @@
 #![cfg(feature = "lite")]
 
-use std::{self, thread, time::Duration};
+use std::{thread, time::Duration};
 
 use readlock::lite::Shared;
 
