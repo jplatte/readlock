@@ -1,3 +1,7 @@
+# unreleased
+
+- Add `lite` feature flag and module
+
 # 0.1.5
 
 - Add `Shared::{read_count, weak_count}`
