@@ -1,6 +1,14 @@
 [workspace]
-members = ["readlock"]
+members = ["readlock", "readlock-tokio"]
 resolver = "2"
+
+[workspace.dependencies]
+rclite = "0.2.4"
+
+[workspace.package]
+repository = "https://github.com/jplatte/readlock"
+license = "MPL-2.0"
+edition = "2021"
 
 [workspace.lints.rust]
 missing_debug_implementations = "warn"

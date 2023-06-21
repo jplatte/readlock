@@ -1,16 +1,16 @@
 [package]
 name = "readlock"
 version = "0.1.6"
-edition = "2021"
-license = "MPL-2.0"
 description = "A weird alternative to Arc<RwLock<T>>"
-repository = "https://github.com/jplatte/readlock"
+repository.workspace = true
+license.workspace = true
+edition.workspace = true
 
 [features]
 lite = ["dep:rclite"]
 
 [dependencies]
-rclite = { version = "0.2.4", optional = true }
+rclite = { workspace = true, optional = true }
 
 [lints]
 workspace = true
