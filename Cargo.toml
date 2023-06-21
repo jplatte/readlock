@@ -1,13 +1,30 @@
-[package]
-name = "readlock"
-version = "0.1.5"
-edition = "2021"
-license = "MPL-2.0"
-description = "A weird alternative to Arc<RwLock<T>>"
-repository = "https://github.com/jplatte/readlock"
+[workspace]
+members = ["readlock"]
+resolver = "2"
 
-[features]
-lite = ["dep:rclite"]
+[workspace.lints.rust]
+missing_debug_implementations = "warn"
+missing_docs = "warn"
+rust_2018_idioms = "warn"
+semicolon_in_expressions_from_macros = "warn"
+unreachable_pub = "warn"
+unused_import_braces = "warn"
+unused_qualifications = "warn"
 
-[dependencies]
-rclite = { version = "0.1.5", optional = true }
+[workspace.lints.clippy]
+branches_sharing_code = "warn"
+cloned_instead_of_copied = "warn"
+dbg_macro = "warn"
+empty_line_after_outer_attr = "warn"
+inefficient_to_string = "warn"
+macro_use_imports = "warn"
+map_flatten = "warn"
+mod_module_files = "warn"
+mut_mut = "warn"
+nonstandard_macro_braces = "warn"
+semicolon_if_nothing_returned = "warn"
+str_to_string = "warn"
+todo = "warn"
+unreadable_literal = "warn"
+unseparated_literal_suffix = "warn"
+wildcard_imports = "warn"
