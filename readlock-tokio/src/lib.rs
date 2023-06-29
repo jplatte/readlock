@@ -4,7 +4,7 @@ use std::{
     fmt, ops,
     sync::{Arc, Weak},
 };
-use tokio::sync::{RwLock, RwLockReadGuard, RwLockWriteGuard};
+use tokio::sync::{OwnedRwLockReadGuard, RwLock, RwLockReadGuard, RwLockWriteGuard};
 
 #[cfg(feature = "lite")]
 pub mod lite;
@@ -136,6 +136,16 @@ impl<T: ?Sized> SharedReadLock<T> {
         SharedReadGuard(self.0.read().await)
     }
 
+    /// Lock this `SharedReadLock`, causing the current task to yield until the
+    /// lock has been acquired.
+    ///
+    /// This method is identical to [`lock`][Self::lock], except that the
+    /// returned guard keeps a clone of the internal [`Arc`] instead of
+    /// borrowing it. Therefore, the guard does has a `'static` lifetime.
+    pub async fn lock_owned(self) -> OwnedSharedReadGuard<T> {
+        OwnedSharedReadGuard(self.0.read_owned().await)
+    }
+
     /// Create a new [`WeakReadLock`] pointer to this allocation.
     pub fn downgrade(&self) -> WeakReadLock<T> {
         WeakReadLock(Arc::downgrade(&self.0))
@@ -246,6 +256,33 @@ impl<'a, T: ?Sized + 'a> ops::Deref for SharedReadGuard<'a, T> {
 }
 
 impl<'a, T: fmt::Debug + ?Sized + 'a> fmt::Debug for SharedReadGuard<'a, T> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        self.0.fmt(f)
+    }
+}
+
+/// RAII structure used to release the shared read access of a lock when
+/// dropped.
+#[clippy::has_significant_drop]
+pub struct OwnedSharedReadGuard<T: ?Sized>(OwnedRwLockReadGuard<T>);
+
+impl<T: ?Sized> OwnedSharedReadGuard<T> {
+    /// Create a `SharedReadGuard` from its internal representation,
+    /// `OwnedRwLockReadGuard< T>`.
+    pub fn from_inner(guard: OwnedRwLockReadGuard<T>) -> Self {
+        Self(guard)
+    }
+}
+
+impl<T: ?Sized> ops::Deref for OwnedSharedReadGuard<T> {
+    type Target = T;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl<T: fmt::Debug + ?Sized> fmt::Debug for OwnedSharedReadGuard<T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         self.0.fmt(f)
     }
