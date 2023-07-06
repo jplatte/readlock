@@ -272,6 +272,14 @@ impl<'a, T: fmt::Debug + ?Sized + 'a> fmt::Debug for SharedReadGuard<'a, T> {
 #[clippy::has_significant_drop]
 pub struct SharedWriteGuard<'a, T: ?Sized>(RwLockWriteGuard<'a, T>);
 
+impl<'a, T: ?Sized> SharedWriteGuard<'a, T> {
+    /// Create a `SharedWriteGuard` from its internal representation,
+    /// `RwLockWriteGuard<'a, T>`.
+    pub fn from_inner(guard: RwLockWriteGuard<'a, T>) -> Self {
+        Self(guard)
+    }
+}
+
 impl<'a, T: ?Sized + 'a> ops::Deref for SharedWriteGuard<'a, T> {
     type Target = T;
 

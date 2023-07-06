@@ -302,6 +302,14 @@ impl<'a, T: ?Sized + 'a> ops::Deref for SharedWriteGuard<'a, T> {
     }
 }
 
+impl<'a, T: ?Sized> SharedWriteGuard<'a, T> {
+    /// Create a `SharedWriteGuard` from its internal representation,
+    /// `RwLockWriteGuard<'a, T>`.
+    pub fn from_inner(guard: RwLockWriteGuard<'a, T>) -> Self {
+        Self(guard)
+    }
+}
+
 impl<'a, T: ?Sized + 'a> ops::DerefMut for SharedWriteGuard<'a, T> {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.0
