@@ -1,4 +1,8 @@
-# unreleased
+# 0.1.7
+
+- Add `SharedWriteGuard::from_inner`
+
+# 0.1.6
 
 - Add `lite` feature flag and module
 
