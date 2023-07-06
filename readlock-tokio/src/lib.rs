@@ -13,6 +13,7 @@ pub mod lite;
 /// [`WeakReadLock`]s, but no other `Shared`s.
 pub struct Shared<T: ?Sized>(Arc<RwLock<T>>);
 
+#[allow(clippy::arc_with_non_send_sync)] // should not fire for generics
 impl<T> Shared<T> {
     /// Create a new `Shared`.
     pub fn new(data: T) -> Self {
