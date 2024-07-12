@@ -2,7 +2,10 @@
 
 use std::{
     fmt, ops,
-    sync::{Arc, LockResult, PoisonError, RwLock, RwLockReadGuard, RwLockWriteGuard, Weak},
+    sync::{
+        Arc, LockResult, PoisonError, RwLock, RwLockReadGuard, RwLockWriteGuard, TryLockError,
+        TryLockResult, Weak,
+    },
 };
 
 #[cfg(feature = "lite")]
@@ -59,10 +62,8 @@ impl<T: ?Sized> Shared<T> {
     pub fn try_get(this: &Self) -> LockResult<&T> {
         match this.0.read() {
             Ok(read_guard) => Ok(unsafe { readguard_into_ref(read_guard) }),
-            Err(poison_err) => {
-                let read_guard = poison_err.into_inner();
-                let r = unsafe { readguard_into_ref(read_guard) };
-                Err(PoisonError::new(r))
+            Err(err) => {
+                Err(poison_error_map(err, |read_guard| unsafe { readguard_into_ref(read_guard) }))
             }
         }
     }
@@ -150,6 +151,14 @@ impl<T: ?Sized> SharedReadLock<T> {
     /// operation succeeds.
     pub fn lock(&self) -> SharedReadGuard<'_, T> {
         SharedReadGuard(self.0.read().unwrap())
+    }
+
+    /// Try to lock this `SharedReadLock`.
+    pub fn try_lock(&self) -> TryLockResult<SharedReadGuard<'_, T>> {
+        self.0
+            .try_read()
+            .map(SharedReadGuard)
+            .map_err(|err| try_lock_error_map(err, SharedReadGuard))
     }
 
     /// Create a new [`WeakReadLock`] pointer to this allocation.
@@ -297,5 +306,17 @@ impl<'a, T: ?Sized + 'a> ops::DerefMut for SharedWriteGuard<'a, T> {
 impl<'a, T: fmt::Debug + ?Sized + 'a> fmt::Debug for SharedWriteGuard<'a, T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         self.0.fmt(f)
+    }
+}
+
+fn poison_error_map<T, U>(error: PoisonError<T>, f: impl FnOnce(T) -> U) -> PoisonError<U> {
+    let inner = error.into_inner();
+    PoisonError::new(f(inner))
+}
+
+fn try_lock_error_map<T, U>(error: TryLockError<T>, f: impl FnOnce(T) -> U) -> TryLockError<U> {
+    match error {
+        TryLockError::Poisoned(err) => TryLockError::Poisoned(poison_error_map(err, f)),
+        TryLockError::WouldBlock => TryLockError::WouldBlock,
     }
 }

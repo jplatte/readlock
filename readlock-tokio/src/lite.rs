@@ -88,6 +88,12 @@ impl<T> SharedReadLock<T> {
     pub async fn lock(&self) -> SharedReadGuard<'_, T> {
         SharedReadGuard(self.0.read().await)
     }
+
+    /// Try to lock this `SharedReadLock`.
+    pub fn try_lock(&self) -> Option<SharedReadGuard<'_, T>> {
+        // FIXME: Custom TryLockError?
+        self.0.try_read().ok().map(SharedReadGuard)
+    }
 }
 
 impl<T: fmt::Debug> fmt::Debug for SharedReadLock<T> {

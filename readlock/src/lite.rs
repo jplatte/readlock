@@ -4,12 +4,12 @@
 
 use std::{
     fmt, ops,
-    sync::{LockResult, PoisonError, RwLock},
+    sync::{LockResult, PoisonError, RwLock, TryLockResult},
 };
 
 use rclite::Arc;
 
-use crate::{readguard_into_ref, SharedReadGuard, SharedWriteGuard};
+use crate::{readguard_into_ref, try_lock_error_map, SharedReadGuard, SharedWriteGuard};
 
 /// A wrapper around a resource possibly shared with [`SharedReadLock`]s, but no
 /// other `Shared`s.
@@ -104,6 +104,14 @@ impl<T> SharedReadLock<T> {
     /// operation succeeds.
     pub fn lock(&self) -> SharedReadGuard<'_, T> {
         SharedReadGuard(self.0.read().unwrap())
+    }
+
+    /// Try to lock this `SharedReadLock`.
+    pub fn try_lock(&self) -> TryLockResult<SharedReadGuard<'_, T>> {
+        self.0
+            .try_read()
+            .map(SharedReadGuard)
+            .map_err(|err| try_lock_error_map(err, SharedReadGuard))
     }
 }
 

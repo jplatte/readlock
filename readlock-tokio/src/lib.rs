@@ -137,6 +137,12 @@ impl<T: ?Sized> SharedReadLock<T> {
         SharedReadGuard(self.0.read().await)
     }
 
+    /// Try to lock this `SharedReadLock`.
+    pub fn try_lock(&self) -> Option<SharedReadGuard<'_, T>> {
+        // FIXME: Custom TryLockError?
+        self.0.try_read().ok().map(SharedReadGuard)
+    }
+
     /// Lock this `SharedReadLock`, causing the current task to yield until the
     /// lock has been acquired.
     ///
