@@ -1,3 +1,7 @@
+# 0.1.8
+
+- Add `SharedReadLock::try_lock`
+
 # 0.1.7
 
 - Add `SharedWriteGuard::from_inner`

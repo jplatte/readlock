@@ -1,6 +1,6 @@
 [package]
 name = "readlock"
-version = "0.1.7"
+version = "0.1.8"
 description = "A weird alternative to Arc<RwLock<T>>"
 repository.workspace = true
 license.workspace = true
