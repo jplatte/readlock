@@ -7,7 +7,7 @@ use std::{fmt, ops};
 use rclite::Arc;
 use tokio::sync::RwLock;
 
-use crate::{readguard_into_ref, SharedReadGuard, SharedWriteGuard};
+use crate::{readguard_into_ref, SharedReadGuard, SharedWriteGuard, TryLockError, TryLockResult};
 
 /// A wrapper around a resource possibly shared with [`SharedReadLock`]s, but no
 /// other `Shared`s.
@@ -87,6 +87,14 @@ impl<T> SharedReadLock<T> {
     /// yield until the lock has been acquired.
     pub async fn lock(&self) -> SharedReadGuard<'_, T> {
         SharedReadGuard(self.0.read().await)
+    }
+
+    /// Try to lock this `SharedReadLock`.
+    ///
+    /// If the value is currently locked for writing through the corresponding
+    /// `Shared` instance, returns [`TryLockError`].
+    pub fn try_lock(&self) -> TryLockResult<SharedReadGuard<'_, T>> {
+        self.0.try_read().map(SharedReadGuard).map_err(TryLockError)
     }
 }
 

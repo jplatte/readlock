@@ -137,6 +137,14 @@ impl<T: ?Sized> SharedReadLock<T> {
         SharedReadGuard(self.0.read().await)
     }
 
+    /// Try to lock this `SharedReadLock`.
+    ///
+    /// If the value is currently locked for writing through the corresponding
+    /// `Shared` instance, returns [`TryLockError`].
+    pub fn try_lock(&self) -> TryLockResult<SharedReadGuard<'_, T>> {
+        self.0.try_read().map(SharedReadGuard).map_err(TryLockError)
+    }
+
     /// Lock this `SharedReadLock`, causing the current task to yield until the
     /// lock has been acquired.
     ///
@@ -321,3 +329,23 @@ impl<'a, T: fmt::Debug + ?Sized + 'a> fmt::Debug for SharedWriteGuard<'a, T> {
         self.0.fmt(f)
     }
 }
+
+/// Error returned from [`SharedReadLock::try_lock`].
+pub struct TryLockError(tokio::sync::TryLockError);
+
+impl fmt::Display for TryLockError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        self.0.fmt(f)
+    }
+}
+
+impl fmt::Debug for TryLockError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        self.0.fmt(f)
+    }
+}
+
+impl std::error::Error for TryLockError {}
+
+/// A type alias for the result of a nonblocking locking method.
+pub type TryLockResult<T> = Result<T, TryLockError>;
