@@ -1,3 +1,7 @@
+# 0.1.9
+
+- Add docs.rs configuration for showing the `lite` feature
+
 # 0.1.8
 
 - Add `SharedReadLock::try_lock`
