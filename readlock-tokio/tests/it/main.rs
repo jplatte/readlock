@@ -20,6 +20,10 @@ async fn parallel_read_write() {
         *Shared::lock(&mut shared).await += value;
     }
 
-    sleep(Duration::from_millis(5)).await;
-    assert!(join_handle.is_finished());
+    if cfg!(miri) {
+        join_handle.await.unwrap();
+    } else {
+        sleep(Duration::from_millis(5)).await;
+        assert!(join_handle.is_finished());
+    }
 }

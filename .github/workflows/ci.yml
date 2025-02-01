@@ -35,16 +35,17 @@ jobs:
         env:
           RUSTDOCFLAGS: "-D warnings"
 
-  #test-miri:
-  #  name: Run tests with miri (Rust nightly)
-  #  runs-on: ubuntu-latest
-  #
-  #  steps:
-  #    - uses: actions/checkout@v4
-  #    - uses: dtolnay/rust-toolchain@nightly
-  #      with:
-  #        components: miri
-  #    - run: cargo miri test --all-features
+  test-miri:
+    name: Run tests with miri (Rust nightly)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@nightly
+        with:
+          components: miri
+      # miri tests for readlock-tokio are very very slow
+      - run: cargo miri test --all-features -p readlock
 
   clippy:
     name: Run clippy (Rust nightly)
