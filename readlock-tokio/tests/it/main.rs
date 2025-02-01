@@ -1,3 +1,5 @@
+#![allow(missing_docs)]
+
 use readlock_tokio::Shared;
 use tokio::{
     task,

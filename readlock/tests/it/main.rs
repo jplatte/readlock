@@ -1,3 +1,5 @@
+#![allow(missing_docs)]
+
 use std::{self, thread, time::Duration};
 
 use readlock::Shared;
