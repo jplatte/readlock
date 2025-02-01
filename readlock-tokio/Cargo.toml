@@ -1,6 +1,6 @@
 [package]
 name = "readlock-tokio"
-version = "0.1.3"
+version = "0.1.4"
 description = "A weird alternative to Arc<RwLock<T>>, using tokio's RwLock"
 repository.workspace = true
 license.workspace = true
