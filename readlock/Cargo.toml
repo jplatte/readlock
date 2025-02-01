@@ -6,6 +6,9 @@ repository.workspace = true
 license.workspace = true
 edition.workspace = true
 
+[package.metadata.docs.rs]
+all-features = true
+
 [features]
 lite = ["dep:rclite"]
 
